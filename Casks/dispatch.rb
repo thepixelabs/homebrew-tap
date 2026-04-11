@@ -4,8 +4,10 @@ cask "dispatch" do
 
   url "https://github.com/thepixelabs/dispatch/releases/download/v#{version}/Dispatch-#{version}-arm64.dmg"
   name "Dispatch"
-  desc "Local-first AI agent orchestrator — monitors Claude Code, Codex, Gemini CLI, and Copilot from one dashboard"
+  desc "Local-first AI agent monitor for Claude, Codex, Gemini, and Copilot"
   homepage "https://github.com/thepixelabs/dispatch"
+
+  depends_on macos: ">= :monterey"
 
   app "Dispatch.app"
 
