@@ -1,0 +1,49 @@
+name: CI — brew audit + style
+
+on:
+  pull_request:
+    branches: ['**']
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    name: Audit changed formulas/casks
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Detect changed .rb files
+        id: changed
+        run: |
+          FILES=$(git diff --name-only origin/main...HEAD | grep -E '^(Formula|Casks)/.*\.rb$' || true)
+          if [ -z "$FILES" ]; then
+            echo "No formula or cask files changed."
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "files=$FILES" >> "$GITHUB_OUTPUT"
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Register tap locally
+        if: steps.changed.outputs.skip == 'false'
+        run: brew tap --force thepixelabs/tap "$(pwd)"
+
+      - name: brew audit --strict --online
+        if: steps.changed.outputs.skip == 'false'
+        run: brew audit --strict --online ${{ steps.changed.outputs.files }}
+
+      - name: brew style
+        if: steps.changed.outputs.skip == 'false'
+        run: brew style ${{ steps.changed.outputs.files }}
+
+      - name: Upload logs on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: brew-audit-logs
+          path: ~/Library/Logs/Homebrew/
+          retention-days: 7
