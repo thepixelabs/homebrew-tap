@@ -7,6 +7,8 @@ cask "dispatch" do
   desc "Local-first AI agent orchestrator — monitors Claude Code, Codex, Gemini CLI, and Copilot from one dashboard"
   homepage "https://github.com/thepixelabs/dispatch"
 
+  depends_on macos: ">= :monterey"
+
   app "Dispatch.app"
 
   zap trash: [
