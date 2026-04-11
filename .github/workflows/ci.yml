@@ -43,6 +43,8 @@ jobs:
 
       - name: brew audit --strict --online
         if: steps.changed.outputs.skip == 'false'
+        env:
+          HOMEBREW_GITHUB_API_TOKEN: ${{ github.token }}
         run: brew audit --strict --online ${{ steps.names.outputs.names }}
 
       - name: brew style
