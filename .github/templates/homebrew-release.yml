@@ -1,0 +1,96 @@
+# TEMPLATE FILE — copy this into <source-repo>/.github/workflows/homebrew-release.yml
+# and replace placeholder tokens:
+#   <APP_NAME>           — lowercase app name (e.g. dispatch, kubecat)
+#   <ARTIFACT_NAME_GLOB> — glob for the release asset (e.g. Dispatch-*-universal.dmg)
+#   <CASK_OR_FORMULA>    — literal "Casks" or "Formula"
+#   <APP_DISPLAY_NAME>   — human-readable name for the PR title (e.g. Dispatch, Kubecat)
+#
+# See Vedox/docs/runbooks/homebrew-tap-release.md "Add a new app to the tap"
+# for the full procedure.
+
+name: Bump Homebrew tap
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: read
+
+jobs:
+  bump-tap:
+    name: Open version-bump PR against homebrew-tap
+    runs-on: ubuntu-latest
+    steps:
+      - name: Generate tap bot installation token
+        id: app_token
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ secrets.HOMEBREW_TAP_APP_ID }}
+          private-key: ${{ secrets.HOMEBREW_TAP_APP_PRIVATE_KEY }}
+          owner: thepixelabs
+          repositories: homebrew-tap
+
+      - name: Download release asset
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.event.release.tag_name }}
+        run: |
+          gh release download "$TAG" \
+            --repo "${{ github.repository }}" \
+            --pattern '<ARTIFACT_NAME_GLOB>' \
+            --dir ./artifacts
+
+      - name: Compute sha256
+        id: hash
+        run: |
+          ASSET=$(ls ./artifacts/<ARTIFACT_NAME_GLOB> | head -1)
+          SHA=$(shasum -a 256 "$ASSET" | awk '{print $1}')
+          echo "sha256=$SHA" >> "$GITHUB_OUTPUT"
+          echo "asset_name=$(basename "$ASSET")" >> "$GITHUB_OUTPUT"
+
+      - name: Clone homebrew-tap
+        env:
+          GH_TOKEN: ${{ steps.app_token.outputs.token }}
+        run: |
+          git clone "https://x-access-token:$GH_TOKEN@github.com/thepixelabs/homebrew-tap.git" tap
+          cd tap
+          git config user.name "thepixelabs-homebrew-bot[bot]"
+          git config user.email "thepixelabs-homebrew-bot[bot]@users.noreply.github.com"
+
+      - name: Update formula/cask version + sha256
+        env:
+          TAG: ${{ github.event.release.tag_name }}
+          SHA: ${{ steps.hash.outputs.sha256 }}
+        run: |
+          cd tap
+          VERSION="${TAG#v}"
+          BRANCH="bump/<APP_NAME>-${TAG}"
+          git checkout -b "$BRANCH"
+
+          FILE="<CASK_OR_FORMULA>/<APP_NAME>.rb"
+          sed -i -E "s|^(  version )\".*\"|\\1\"$VERSION\"|" "$FILE"
+          sed -i -E "s|^(  sha256 )\".*\"|\\1\"$SHA\"|" "$FILE"
+
+          git add "$FILE"
+          git commit -m "bump: <APP_NAME> $TAG"
+          git push origin "$BRANCH"
+
+      - name: Open PR
+        env:
+          GH_TOKEN: ${{ steps.app_token.outputs.token }}
+          TAG: ${{ github.event.release.tag_name }}
+          SHA: ${{ steps.hash.outputs.sha256 }}
+        run: |
+          cd tap
+          gh pr create \
+            --title "bump: <APP_DISPLAY_NAME> $TAG" \
+            --body "Automated version bump from [${{ github.repository }}](${{ github.server_url }}/${{ github.repository }}/releases/tag/$TAG).
+
+          - **version:** ${TAG#v}
+          - **sha256:** $SHA
+
+          Auto-merges if CI passes and diff is version/sha256 only." \
+            --label version-bump \
+            --head "bump/<APP_NAME>-$TAG" \
+            --base main

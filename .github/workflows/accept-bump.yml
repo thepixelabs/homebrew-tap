@@ -1,0 +1,140 @@
+# Auto-approve and merge version-bump PRs from trusted bot authors.
+#
+# Uses pull_request_target (not pull_request) because we need write access to
+# merge the PR. SAFETY: this workflow never checks out or executes untrusted
+# PR code — it only reads PR metadata, labels, and the diff.
+
+name: Auto-merge version bumps
+
+on:
+  pull_request_target:
+    types: [opened, synchronize, reopened, labeled]
+
+permissions:
+  pull-requests: write
+  contents: write
+  checks: read
+
+jobs:
+  auto-merge:
+    name: Gate and merge
+    runs-on: ubuntu-latest
+    # Only run for bot-authored PRs with the version-bump label.
+    # PRs from the thepixelabs-homebrew-bot GitHub App are authored as
+    # 'thepixelabs-homebrew-bot[bot]'. 'github-actions[bot]' is also allowed
+    # for any future workflow that posts via the built-in GITHUB_TOKEN.
+    if: >-
+      (github.event.pull_request.user.login == 'thepixelabs-homebrew-bot[bot]' ||
+       github.event.pull_request.user.login == 'github-actions[bot]') &&
+      contains(github.event.pull_request.labels.*.name, 'version-bump')
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.base.ref }}
+          fetch-depth: 0
+
+      - name: Fetch PR branch for diff
+        run: git fetch origin "${{ github.event.pull_request.head.ref }}"
+
+      - name: Verify single-file change in Formula/ or Casks/
+        id: file_check
+        run: |
+          FILES=$(git diff --name-only "origin/${{ github.event.pull_request.base.ref }}...origin/${{ github.event.pull_request.head.ref }}")
+          FILE_COUNT=$(echo "$FILES" | wc -l | tr -d ' ')
+          echo "files=$FILES"
+          echo "count=$FILE_COUNT"
+
+          if [ "$FILE_COUNT" != "1" ]; then
+            echo "gate=fail" >> "$GITHUB_OUTPUT"
+            echo "reason=Expected 1 changed file, got $FILE_COUNT" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          if ! echo "$FILES" | grep -qE '^(Formula|Casks)/.*\.rb$'; then
+            echo "gate=fail" >> "$GITHUB_OUTPUT"
+            echo "reason=Changed file is not under Formula/ or Casks/: $FILES" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          echo "gate=pass" >> "$GITHUB_OUTPUT"
+
+      - name: Verify diff is version/sha256/url only
+        if: steps.file_check.outputs.gate == 'pass'
+        id: diff_check
+        run: |
+          DIFF=$(git diff "origin/${{ github.event.pull_request.base.ref }}...origin/${{ github.event.pull_request.head.ref }}" \
+            | grep '^[+-]' | grep -v '^[+-][+-][+-]' || true)
+
+          BAD_LINES=$(echo "$DIFF" | grep -vE '^\s*$|^[+-]\s*(version|sha256|url)\s+"' || true)
+
+          if [ -n "$BAD_LINES" ]; then
+            echo "gate=fail" >> "$GITHUB_OUTPUT"
+            echo "reason=Diff contains lines beyond version/sha256/url" >> "$GITHUB_OUTPUT"
+            echo "Unexpected lines:"
+            echo "$BAD_LINES"
+            exit 0
+          fi
+
+          echo "gate=pass" >> "$GITHUB_OUTPUT"
+
+      - name: Wait for CI to pass
+        if: steps.file_check.outputs.gate == 'pass' && steps.diff_check.outputs.gate == 'pass'
+        id: ci_check
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const sha = context.payload.pull_request.head.sha;
+            // Poll for up to 10 minutes
+            for (let i = 0; i < 20; i++) {
+              const { data: checks } = await github.rest.checks.listForRef({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                ref: sha,
+                check_name: 'Audit changed formulas/casks',
+              });
+              const run = checks.check_runs[0];
+              if (run && run.status === 'completed') {
+                if (run.conclusion === 'success') {
+                  core.setOutput('gate', 'pass');
+                  return;
+                } else {
+                  core.setOutput('gate', 'fail');
+                  core.setOutput('reason', `CI concluded with: ${run.conclusion}`);
+                  return;
+                }
+              }
+              await new Promise(r => setTimeout(r, 30000));
+            }
+            core.setOutput('gate', 'fail');
+            core.setOutput('reason', 'CI did not complete within 10 minutes');
+
+      - name: Auto-approve and merge
+        if: >-
+          steps.file_check.outputs.gate == 'pass' &&
+          steps.diff_check.outputs.gate == 'pass' &&
+          steps.ci_check.outputs.gate == 'pass'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          gh pr review "$PR_NUMBER" --approve --body "Auto-approved: single-file version bump, diff is clean, CI passed."
+          gh pr merge "$PR_NUMBER" --squash --auto
+
+      - name: Comment on blocked PR
+        if: >-
+          steps.file_check.outputs.gate == 'fail' ||
+          steps.diff_check.outputs.gate == 'fail' ||
+          steps.ci_check.outputs.gate == 'fail'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          REASON=""
+          [ "${{ steps.file_check.outputs.gate }}" = "fail" ] && REASON="${{ steps.file_check.outputs.reason }}"
+          [ "${{ steps.diff_check.outputs.gate }}" = "fail" ] && REASON="${{ steps.diff_check.outputs.reason }}"
+          [ "${{ steps.ci_check.outputs.gate }}" = "fail" ] && REASON="${{ steps.ci_check.outputs.reason }}"
+          gh pr comment "$PR_NUMBER" --body "Auto-merge blocked — needs human review.
+
+          **Reason:** $REASON
+
+          This PR was opened by the version-bump bot but did not pass all automated gates. A human reviewer should inspect the diff and merge manually if it looks correct."
