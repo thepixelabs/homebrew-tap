@@ -32,13 +32,22 @@ jobs:
         if: steps.changed.outputs.skip == 'false'
         run: brew tap --force thepixelabs/tap "$(pwd)"
 
+      - name: Convert paths to tap-qualified names
+        if: steps.changed.outputs.skip == 'false'
+        id: names
+        run: |
+          # Homebrew 4.x requires `brew audit <name>`, not `brew audit <path>`
+          NAMES=$(echo "${{ steps.changed.outputs.files }}" \
+            | sed -E 's|Casks/(.*)\.rb|thepixelabs/tap/\1|g; s|Formula/(.*)\.rb|thepixelabs/tap/\1|g')
+          echo "names=$NAMES" >> "$GITHUB_OUTPUT"
+
       - name: brew audit --strict --online
         if: steps.changed.outputs.skip == 'false'
-        run: brew audit --strict --online ${{ steps.changed.outputs.files }}
+        run: brew audit --strict --online ${{ steps.names.outputs.names }}
 
       - name: brew style
         if: steps.changed.outputs.skip == 'false'
-        run: brew style ${{ steps.changed.outputs.files }}
+        run: brew style ${{ steps.names.outputs.names }}
 
       - name: Upload logs on failure
         if: failure()
