@@ -4,8 +4,8 @@ class Uplnk < Formula
   # url and sha256 are updated by the automated bump workflow on each release.
   # Do not edit these manually — they are managed by .github/workflows/bump-homebrew.yml
   # in the source repository.
-  url "https://registry.npmjs.org/uplnk/-/uplnk-0.1.0.tgz"
-  sha256 "PLACEHOLDER_REPLACE_ON_FIRST_PUBLISH"
+  url "https://registry.npmjs.org/uplnk/-/uplnk-1.3.1.tgz"
+  sha256 "5d9490b91da9f302026b6c995dcec8510e5206e3b080e650546baa445966cc99"
   license :cannot_represent
 
   # Pin to Node 22 LTS (supported through April 2027).
