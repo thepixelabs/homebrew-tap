@@ -1,50 +1,40 @@
 class Uplnk < Formula
   desc "Terminal-native AI chat client — local-first, privacy-first"
-  homepage "https://github.com/uplnk/uplnk"
-  # url and sha256 are updated by the automated bump workflow on each release.
-  # Do not edit these manually — they are managed by .github/workflows/bump-homebrew.yml
-  # in the source repository.
-  url "https://registry.npmjs.org/uplnk/-/uplnk-1.3.1.tgz"
-  sha256 "5d9490b91da9f302026b6c995dcec8510e5206e3b080e650546baa445966cc99"
+  homepage "https://github.com/thepixelabs/uplnk"
+  version "1.4.3"
   license :cannot_represent
 
-  # Pin to Node 22 LTS (supported through April 2027).
-  # uplnk requires Node >= 20; Node 22 is the current LTS and avoids churn
-  # from Homebrew rolling `node` to a new major.
-  depends_on "node@22"
-
-  def install
-    # std_npm_args installs to libexec/ with Homebrew prefix isolation,
-    # preventing uplnk's node_modules from polluting the global npm tree.
-    system "npm", "install", *std_npm_args
-    bin.install_symlink libexec.glob("bin/*")
+  on_macos do
+    on_arm do
+      url "https://github.com/thepixelabs/uplnk/releases/download/v1.4.3/uplnk-darwin-arm64"
+      sha256 "ca5fca3eedc47ca6d7fb093d664c5207f4662d085cc75b34faf1fb6ca22457f3"
+    end
+    on_intel do
+      url "https://github.com/thepixelabs/uplnk/releases/download/v1.4.3/uplnk-darwin-x64"
+      sha256 "4f09231d6925814fb1d4c37edc37c45fcfbdfa13ec47af3a6101346a61544e03"
+    end
   end
 
-  def caveats
-    <<~EOS
-      uplnk requires a running LLM provider (Ollama, vLLM, LM Studio, or any
-      OpenAI-compatible endpoint).
+  on_linux do
+    on_arm do
+      url "https://github.com/thepixelabs/uplnk/releases/download/v1.4.3/uplnk-linux-arm64"
+      sha256 "5eeda793775d9254047bea7aeb345570d926ca6f7b031de3247cdb66dc9982ee"
+    end
+    on_intel do
+      url "https://github.com/thepixelabs/uplnk/releases/download/v1.4.3/uplnk-linux-x64"
+      sha256 "692e5e8150cf36df10d81a601eb1e9921ca1dbdeb0276271f566c664757746e0"
+    end
+  end
 
-      Quick start::
-        brew install ollama
-        ollama serve &
-        ollama pull llama3.2
-        uplnk
-
-      Verify your environment at any time with:
-        uplnk doctor
-    EOS
+  def install
+    if OS.mac?
+      bin.install (Hardware::CPU.arm? ? "uplnk-darwin-arm64" : "uplnk-darwin-x64") => "uplnk"
+    else
+      bin.install (Hardware::CPU.arm? ? "uplnk-linux-arm64" : "uplnk-linux-x64") => "uplnk"
+    end
   end
 
   test do
-    # Smoke test: --version must print the version string and exit 0.
     assert_match version.to_s, shell_output("#{bin}/uplnk --version")
-
-    # Preflight check: doctor exit code is 0 only when all required
-    # runtime dependencies are present.  In the Homebrew sandbox only
-    # the Node.js check will pass (no Ollama), so we just assert the
-    # binary runs without crashing on the Node version check.
-    output = shell_output("#{bin}/uplnk doctor 2>&1", 1)
-    assert_match "Node.js version", output
   end
 end
