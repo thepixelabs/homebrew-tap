@@ -1,28 +1,28 @@
 class Uplnk < Formula
   desc "Terminal-native AI chat client — local-first, privacy-first"
   homepage "https://github.com/thepixelabs/uplnk"
-  version "1.4.4"
+  version "1.5.0"
   license "Apache-2.0"
 
   on_macos do
     on_arm do
-      url "https://github.com/thepixelabs/uplnk/releases/download/v1.4.4/uplnk-darwin-arm64"
-      sha256 "8f4c67b68076a2accd9aa6b8a86882fd33d6699594ba03ae019249971986798b"
+      url "https://github.com/thepixelabs/uplnk/releases/download/v1.5.0/uplnk-darwin-arm64"
+      sha256 "0604ed18694fd382241d0588df900086cfecb3e827c2c22f1f329adae90e133c"
     end
     on_intel do
-      url "https://github.com/thepixelabs/uplnk/releases/download/v1.4.4/uplnk-darwin-x64"
-      sha256 "58cb12422966e685a4b138461124aa517e64a83ab1d608fa8d8811b50855ee0e"
+      url "https://github.com/thepixelabs/uplnk/releases/download/v1.5.0/uplnk-darwin-x64"
+      sha256 "ce0c9af3c6d3756d500058e26524c7e472d0085fe403e3fa9553f8e8445f06ea"
     end
   end
 
   on_linux do
     on_arm do
-      url "https://github.com/thepixelabs/uplnk/releases/download/v1.4.4/uplnk-linux-arm64"
-      sha256 "78eb795580e3cfcd9f7fb04ec6411fcb3d58455d3cde568595c805507172d6e7"
+      url "https://github.com/thepixelabs/uplnk/releases/download/v1.5.0/uplnk-linux-arm64"
+      sha256 "a2eab29d6fb3f791c2b8175840143089c30a507322c5b075d71a1fef5dccf1c6"
     end
     on_intel do
-      url "https://github.com/thepixelabs/uplnk/releases/download/v1.4.4/uplnk-linux-x64"
-      sha256 "6b8ddee7552303163cf75c6cfc65f3011aae23ebbf1f2352ae60fe18495d4299"
+      url "https://github.com/thepixelabs/uplnk/releases/download/v1.5.0/uplnk-linux-x64"
+      sha256 "5a8ecd4174e732ae3b63e4e4ee8ac9894acd1c802b0b7d00da2054039a2a6095"
     end
   end
 
