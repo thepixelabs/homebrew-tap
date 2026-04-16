@@ -1,50 +1,63 @@
 class Uplnk < Formula
   desc "Terminal-native AI chat client — local-first, privacy-first"
-  homepage "https://github.com/uplnk/uplnk"
-  # url and sha256 are updated by the automated bump workflow on each release.
-  # Do not edit these manually — they are managed by .github/workflows/bump-homebrew.yml
-  # in the source repository.
-  url "https://registry.npmjs.org/uplnk/-/uplnk-1.3.1.tgz"
-  sha256 "5d9490b91da9f302026b6c995dcec8510e5206e3b080e650546baa445966cc99"
+  homepage "https://github.com/thepixelabs/uplnk"
+  version "PLACEHOLDER_VERSION"
   license "Apache-2.0"
 
-  # Pin to Node 22 LTS (supported through April 2027).
-  # uplnk requires Node >= 20; Node 22 is the current LTS and avoids churn
-  # from Homebrew rolling `node` to a new major.
-  depends_on "node@22"
+  on_macos do
+    on_arm do
+      url "PLACEHOLDER_URL_DARWIN_ARM64"
+      sha256 "PLACEHOLDER_SHA_DARWIN_ARM64"
 
-  def install
-    # std_npm_args installs to libexec/ with Homebrew prefix isolation,
-    # preventing uplnk's node_modules from polluting the global npm tree.
-    system "npm", "install", *std_npm_args
-    bin.install_symlink libexec.glob("bin/*")
+      def install
+        bin.install "uplnk-darwin-arm64" => "uplnk"
+      end
+    end
+    on_intel do
+      url "PLACEHOLDER_URL_DARWIN_X64"
+      sha256 "PLACEHOLDER_SHA_DARWIN_X64"
+
+      def install
+        bin.install "uplnk-darwin-x64" => "uplnk"
+      end
+    end
   end
 
-  def caveats
-    <<~EOS
-      uplnk requires a running LLM provider (Ollama, vLLM, LM Studio, or any
-      OpenAI-compatible endpoint).
+  on_linux do
+    on_arm do
+      url "PLACEHOLDER_URL_LINUX_ARM64"
+      sha256 "PLACEHOLDER_SHA_LINUX_ARM64"
 
-      Quick start::
-        brew install ollama
-        ollama serve &
-        ollama pull llama3.2
-        uplnk
+      def install
+        bin.install "uplnk-linux-arm64" => "uplnk"
+      end
+    end
+    on_intel do
+      url "PLACEHOLDER_URL_LINUX_X64"
+      sha256 "PLACEHOLDER_SHA_LINUX_X64"
 
-      Verify your environment at any time with:
-        uplnk doctor
-    EOS
+      def install
+        bin.install "uplnk-linux-x64" => "uplnk"
+      end
+    end
   end
 
   test do
-    # Smoke test: --version must print the version string and exit 0.
     assert_match version.to_s, shell_output("#{bin}/uplnk --version")
-
-    # Preflight check: doctor exit code is 0 only when all required
-    # runtime dependencies are present.  In the Homebrew sandbox only
-    # the Node.js check will pass (no Ollama), so we just assert the
-    # binary runs without crashing on the Node version check.
-    output = shell_output("#{bin}/uplnk doctor 2>&1", 1)
-    assert_match "Node.js version", output
   end
 end
+RUBY
+
+# Substitute placeholders with actual values. Using | as the sed
+# delimiter avoids conflicts with / in URLs.
+sed -i \
+  -e "s|PLACEHOLDER_VERSION|${VERSION}|g" \
+  -e "s|PLACEHOLDER_URL_DARWIN_ARM64|${URL_DARWIN_ARM64}|g" \
+  -e "s|PLACEHOLDER_SHA_DARWIN_ARM64|${SHA_DARWIN_ARM64}|g" \
+  -e "s|PLACEHOLDER_URL_DARWIN_X64|${URL_DARWIN_X64}|g" \
+  -e "s|PLACEHOLDER_SHA_DARWIN_X64|${SHA_DARWIN_X64}|g" \
+  -e "s|PLACEHOLDER_URL_LINUX_ARM64|${URL_LINUX_ARM64}|g" \
+  -e "s|PLACEHOLDER_SHA_LINUX_ARM64|${SHA_LINUX_ARM64}|g" \
+  -e "s|PLACEHOLDER_URL_LINUX_X64|${URL_LINUX_X64}|g" \
+  -e "s|PLACEHOLDER_SHA_LINUX_X64|${SHA_LINUX_X64}|g" \
+  Formula/uplnk.rb
