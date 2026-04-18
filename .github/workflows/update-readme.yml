@@ -19,38 +19,65 @@ jobs:
 
       - name: Generate catalog table from .rb files
         run: |
-          TABLE="| Name | Type | Version | Description | Install |"
-          TABLE="$TABLE\n|------|------|---------|-------------|---------|"
+          # Use Python so the table content (pipe chars, newlines) is never
+          # interpolated into a regex string — the previous Perl one-liner
+          # broke when any formula name/desc contained '|' or newlines:
+          #   perl -0777 -i -pe "s|${START}.*?${END}|${REPLACEMENT}|s"
+          # injected the raw table into the Perl regex, causing
+          # "syntax error … near 'Name'" on every run.
+          python3 - <<'PYEOF'
+          import re, glob, os
+
+          START = '<!-- AUTO-GENERATED: do not edit by hand, updated by .github/workflows/update-readme.yml -->'
+          END   = '<!-- END AUTO-GENERATED -->'
+
+          rows = []
+          rows.append('| Name | Type | Version | Description | Install |')
+          rows.append('|------|------|---------|-------------|---------|')
+
+          def extract(pattern, text, default=''):
+              m = re.search(pattern, text)
+              return m.group(1) if m else default
 
           # Parse Casks
-          for f in Casks/*.rb; do
-            [ -f "$f" ] || continue
-            NAME=$(ruby -e "File.read('$f').match(/cask \"(.+?)\"/); puts \$1" 2>/dev/null || true)
-            DESC=$(ruby -e "File.read('$f').match(/desc \"(.+?)\"/); puts \$1" 2>/dev/null || true)
-            VER=$(ruby -e "File.read('$f').match(/version \"(.+?)\"/); puts \$1" 2>/dev/null || true)
-            [ -z "$NAME" ] && continue
-            TABLE="$TABLE\n| $NAME | Cask | $VER | $DESC | \`brew install --cask thepixelabs/tap/$NAME\` |"
-          done
+          for path in sorted(glob.glob('Casks/*.rb')):
+              text = open(path).read()
+              name = extract(r'cask "(.+?)"', text)
+              if not name:
+                  continue
+              desc = extract(r'desc "(.+?)"', text)
+              ver  = extract(r'version "(.+?)"', text)
+              rows.append(f'| {name} | Cask | {ver} | {desc} | `brew install --cask thepixelabs/tap/{name}` |')
 
           # Parse Formulas
-          for f in Formula/*.rb; do
-            [ -f "$f" ] || continue
-            NAME=$(ruby -e "File.read('$f').match(/class (\w+) < Formula/); puts \$1&.gsub(/([a-z])([A-Z])/, '\\1-\\2')&.downcase" 2>/dev/null || true)
-            DESC=$(ruby -e "File.read('$f').match(/desc \"(.+?)\"/); puts \$1" 2>/dev/null || true)
-            VER=$(ruby -e "File.read('$f').match(/version \"(.+?)\"/); puts \$1" 2>/dev/null || true)
-            [ -z "$NAME" ] && continue
-            TABLE="$TABLE\n| $NAME | Formula | $VER | $DESC | \`brew install thepixelabs/tap/$NAME\` |"
-          done
+          for path in sorted(glob.glob('Formula/*.rb')):
+              text = open(path).read()
+              m = re.search(r'class (\w+) < Formula', text)
+              if not m:
+                  continue
+              # Convert CamelCase class name to kebab-case formula name
+              raw = m.group(1)
+              name = re.sub(r'([a-z])([A-Z])', r'\1-\2', raw).lower()
+              desc = extract(r'desc "(.+?)"', text)
+              # version stanza OR semver embedded in the URL (handles /vX.Y.Z/ too)
+              ver = extract(r'version "(.+?)"', text) or \
+                    extract(r'/v?([0-9]+\.[0-9]+\.[0-9]+)/', text)
+              rows.append(f'| {name} | Formula | {ver} | {desc} | `brew install thepixelabs/tap/{name}` |')
 
-          # Replace content between markers in README.md
-          START='<!-- AUTO-GENERATED: do not edit by hand, updated by .github\/workflows\/update-readme.yml -->'
-          END='<!-- END AUTO-GENERATED -->'
+          table_block = '\n'.join(rows)
+          replacement = f'{START}\n\n{table_block}\n\n{END}'
 
-          # Build the replacement block
-          REPLACEMENT="${START}\n\n$(echo -e "$TABLE")\n\n${END}"
-
-          # Use perl for reliable multiline replacement
-          perl -0777 -i -pe "s|${START}.*?${END}|${REPLACEMENT}|s" README.md
+          readme = open('README.md').read()
+          # re.DOTALL so .* spans newlines between the markers
+          updated = re.sub(
+              re.escape(START) + r'.*?' + re.escape(END),
+              replacement,
+              readme,
+              flags=re.DOTALL
+          )
+          open('README.md', 'w').write(updated)
+          print('Updated README.md catalog table')
+          PYEOF
 
       - name: Check for changes
         id: diff
