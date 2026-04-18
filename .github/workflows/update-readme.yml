@@ -6,6 +6,7 @@ on:
     paths:
       - 'Formula/*.rb'
       - 'Casks/*.rb'
+  workflow_dispatch:
 
 permissions:
   contents: write
