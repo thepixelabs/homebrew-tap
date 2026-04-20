@@ -1,14 +1,14 @@
 cask "kubecat" do
-  version "0.3.1"
-  sha256 "d964e9ca4edef63e571cc14f63effca30cc6b5b71e2357fdf6f00f1604bf2830"
+  version "0.1.3"
+  sha256 "92e529e6949fba7dcac06e0758d6ca02c2e3218edf39ab3bf44d868fae3bdce3"
 
-  url "https://github.com/thepixelabs/homebrew-kubecat/releases/download/v#{version}/kubecat_v#{version}_macOS_universal.dmg"
+  url "https://github.com/thepixelabs/kubecat/releases/download/v0.1.3/kubecat_v0.1.3_macOS_universal.dmg"
   name "Kubecat"
   desc "Incident-first Kubernetes desktop app with AI-powered operations"
   homepage "https://kubecat.io"
 
   livecheck do
-    url "https://github.com/thepixelabs/kubecat/releases/latest"
+    url "https://github.com/thepixelabs/kubecat/releases/download/v0.1.3/kubecat_v0.1.3_macOS_universal.dmg"
     strategy :github_latest
   end
 
