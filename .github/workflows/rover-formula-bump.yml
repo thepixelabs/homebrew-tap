@@ -1,0 +1,101 @@
+name: Bump rover formula version
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "New rover-tui version (e.g. 0.3.5)"
+        required: true
+        type: string
+      sha256:
+        description: "SHA-256 of the new rover_tui-<version>.tar.gz source tarball"
+        required: true
+        type: string
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  bump:
+    name: Update Formula and open PR
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout tap
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+
+      - name: Configure git identity
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Create bump branch
+        run: |
+          BRANCH="bump/rover-v${{ inputs.version }}"
+          git checkout -b "$BRANCH"
+          echo "BRANCH=$BRANCH" >> "$GITHUB_ENV"
+
+      - name: Update tarball URL in formula
+        run: |
+          sed -i 's|rover_tui-[0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*\.tar\.gz|rover_tui-${{ inputs.version }}.tar.gz|g' \
+            Formula/rover.rb
+
+      - name: Update sha256 for rover-tui source tarball
+        run: |
+          python3 - <<'EOF'
+          import re, pathlib
+
+          path = pathlib.Path("Formula/rover.rb")
+          text = path.read_text()
+
+          new_sha = "${{ inputs.sha256 }}"
+          # Replace only the sha256 on the line immediately after the rover-tui source url.
+          # Leaves all resource sha256s untouched (those are managed separately via poet).
+          text = re.sub(
+              r'(url "https://files\.pythonhosted\.org/packages/source/r/rover-tui/[^"]+"\n\s*sha256 ")[a-f0-9]{64}("[^"]*)',
+              rf'\g<1>{new_sha}\g<2>',
+              text,
+          )
+          path.write_text(text)
+          EOF
+
+      - name: Verify formula was actually modified
+        run: |
+          if git diff --quiet Formula/rover.rb; then
+            echo "ERROR: Formula/rover.rb was not modified — sed/regex matched nothing."
+            echo "  version input: ${{ inputs.version }}"
+            echo "  sha256 input:  ${{ inputs.sha256 }}"
+            echo "Check that the URL pattern in rover.rb matches what the sed command expects."
+            exit 1
+          fi
+
+      - name: Run brew audit on updated formula
+        uses: Homebrew/actions/setup-homebrew@main
+      - run: brew audit --new Formula/rover.rb || brew audit Formula/rover.rb
+
+      - name: Commit changes
+        run: |
+          git add Formula/rover.rb
+          git commit -m "chore(rover): bump to ${{ inputs.version }}"
+
+      - name: Push branch
+        run: git push origin "$BRANCH"
+
+      - name: Create pull request
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh pr create \
+            --title "chore(rover): bump to ${{ inputs.version }}" \
+            --body "Automated version bump for rover-tui ${{ inputs.version }}.
+
+          - Updates source tarball URL to \`rover_tui-${{ inputs.version }}.tar.gz\`
+          - Updates formula \`sha256\` to the provided value
+
+          Triggered by the \`rover-pypi-publish\` workflow in thepixelabs/dispatch." \
+            --label "version-bump" \
+            --base main \
+            --head "$BRANCH"
