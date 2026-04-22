@@ -1,6 +1,6 @@
 cask "dispatch" do
-  version "1.47.0"
-  sha256 "e668ad02affe79b3f4b8d7ea36272629e68bc89afa175e8e7172dae0e2a12de1"
+  version "1.47.1"
+  sha256 "0b13913d2232496592b4a2bc2792a6d1a36bcb5a9b450b42f61ee94f5cb19c16"
 
   url "https://github.com/thepixelabs/dispatch/releases/download/v#{version}/Dispatch-#{version}-arm64.dmg"
   name "Dispatch"
