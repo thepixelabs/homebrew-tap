@@ -97,7 +97,7 @@ jobs:
 
       - name: Run brew audit on updated formula
         uses: Homebrew/actions/setup-homebrew@main
-      - run: brew audit --new Formula/rover.rb || brew audit Formula/rover.rb
+      - run: brew audit --new rover || brew audit rover
 
       - name: Commit changes
         run: |
