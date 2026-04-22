@@ -8,8 +8,8 @@ on:
         required: true
         type: string
       sha256:
-        description: "SHA-256 of the new rover_tui-<version>.tar.gz source tarball"
-        required: true
+        description: "SHA-256 of the new rover_tui-<version>.tar.gz source tarball (optional — fetched from PyPI if omitted)"
+        required: false
         type: string
   # Cross-repo trigger from thepixelabs/dispatch rover-pypi-publish.yml.
   # Uses repository_dispatch instead of workflow_dispatch because the tap-scoped
@@ -30,20 +30,60 @@ jobs:
     # `inputs.*`, repository_dispatch puts them under `github.event.client_payload.*`.
     env:
       VERSION: ${{ github.event.inputs.version || github.event.client_payload.version }}
-      SHA256:  ${{ github.event.inputs.sha256  || github.event.client_payload.sha256 }}
+      SHA256_HINT: ${{ github.event.inputs.sha256 || github.event.client_payload.sha256 }}
       BRANCH:  bump/rover-v${{ github.event.inputs.version || github.event.client_payload.version }}
     steps:
       - name: Validate inputs
         run: |
           set -euo pipefail
-          if [ -z "${VERSION:-}" ] || [ -z "${SHA256:-}" ]; then
-            echo "ERROR: missing version or sha256"
-            echo "  VERSION=$VERSION"
-            echo "  SHA256=$SHA256"
+          if [ -z "${VERSION:-}" ]; then
+            echo "ERROR: missing version"
             exit 1
           fi
           echo "version: $VERSION"
-          echo "sha256:  $SHA256"
+
+      - name: Fetch canonical URL and sha256 from PyPI
+        id: pypi
+        run: |
+          set -euo pipefail
+          # Wait for PyPI to have the release (retry up to 5 times, 15s apart)
+          for i in 1 2 3 4 5; do
+            PYPI_JSON=$(curl -sf "https://pypi.org/pypi/rover-tui/${VERSION}/json" 2>/dev/null || true)
+            if [ -n "$PYPI_JSON" ]; then break; fi
+            echo "PyPI not ready yet, retry $i/5 in 15s..."
+            sleep 15
+          done
+          if [ -z "${PYPI_JSON:-}" ]; then
+            echo "ERROR: PyPI did not return data for rover-tui ${VERSION}"
+            exit 1
+          fi
+          SDIST_URL=$(echo "$PYPI_JSON" | python3 -c "
+          import sys, json
+          data = json.load(sys.stdin)
+          urls = [f for f in data['urls'] if f['packagetype'] == 'sdist']
+          if not urls:
+              raise SystemExit('No sdist found in PyPI response')
+          print(urls[0]['url'])
+          ")
+          SDIST_SHA256=$(echo "$PYPI_JSON" | python3 -c "
+          import sys, json
+          data = json.load(sys.stdin)
+          urls = [f for f in data['urls'] if f['packagetype'] == 'sdist']
+          if not urls:
+              raise SystemExit('No sdist found in PyPI response')
+          print(urls[0]['digests']['sha256'])
+          ")
+          echo "PyPI sdist URL: $SDIST_URL"
+          echo "PyPI sha256:    $SDIST_SHA256"
+          # If caller provided sha256, verify it matches
+          if [ -n "${SHA256_HINT:-}" ] && [ "$SHA256_HINT" != "$SDIST_SHA256" ]; then
+            echo "ERROR: provided sha256 does not match PyPI"
+            echo "  provided: $SHA256_HINT"
+            echo "  PyPI:     $SDIST_SHA256"
+            exit 1
+          fi
+          echo "url=$SDIST_URL"     >> "$GITHUB_OUTPUT"
+          echo "sha256=$SDIST_SHA256" >> "$GITHUB_OUTPUT"
 
       - name: Checkout tap
         uses: actions/checkout@v4
@@ -59,12 +99,10 @@ jobs:
       - name: Create bump branch
         run: git checkout -b "$BRANCH"
 
-      - name: Update tarball URL in formula
-        run: |
-          sed -i "s|rover_tui-[0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*\.tar\.gz|rover_tui-${VERSION}.tar.gz|g" \
-            Formula/rover.rb
-
-      - name: Update sha256 for rover-tui source tarball
+      - name: Update URL and sha256 in formula
+        env:
+          NEW_URL: ${{ steps.pypi.outputs.url }}
+          NEW_SHA256: ${{ steps.pypi.outputs.sha256 }}
         run: |
           python3 - <<'EOF'
           import os, re, pathlib
@@ -72,24 +110,35 @@ jobs:
           path = pathlib.Path("Formula/rover.rb")
           text = path.read_text()
 
-          new_sha = os.environ["SHA256"]
-          # Replace only the sha256 on the line immediately after the rover-tui source url.
-          # Leaves all resource sha256s untouched (those are managed separately via poet).
+          new_url    = os.environ["NEW_URL"]
+          new_sha256 = os.environ["NEW_SHA256"]
+
+          # Replace the full PyPI URL for the rover-tui sdist.
+          # Matches any pythonhosted.org URL ending in rover_tui-*.tar.gz.
           text = re.sub(
-              r'(url "https://files\.pythonhosted\.org/packages/source/r/rover-tui/[^"]+"\n\s*sha256 ")[a-f0-9]{64}("[^"]*)',
-              rf'\g<1>{new_sha}\g<2>',
+              r'https://files\.pythonhosted\.org/packages/[^"]+/rover_tui-[^"]+\.tar\.gz',
+              new_url,
+              text,
+          )
+          # Replace the sha256 on the line immediately following the rover-tui source URL.
+          # Leaves all resource sha256s untouched.
+          text = re.sub(
+              r'(url "https://files\.pythonhosted\.org/packages/[^"]+/rover_tui-[^"]+\.tar\.gz"\n\s*sha256 ")[a-f0-9]{64}(")',
+              rf'\g<1>{new_sha256}\g<2>',
               text,
           )
           path.write_text(text)
+          print("Formula updated.")
+          print("  url:    ", new_url)
+          print("  sha256: ", new_sha256)
           EOF
 
       - name: Verify formula was actually modified
         run: |
           if git diff --quiet Formula/rover.rb; then
-            echo "ERROR: Formula/rover.rb was not modified — sed/regex matched nothing."
-            echo "  version: $VERSION"
-            echo "  sha256:  $SHA256"
-            echo "Check that the URL pattern in rover.rb matches what the sed command expects."
+            echo "ERROR: Formula/rover.rb was not modified — regex matched nothing."
+            echo "Check that the URL pattern in rover.rb matches what the python script expects."
+            git diff HEAD Formula/rover.rb || true
             exit 1
           fi
 
@@ -110,13 +159,14 @@ jobs:
       - name: Create pull request
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SDIST_URL: ${{ steps.pypi.outputs.url }}
         run: |
           gh pr create \
             --title "chore(rover): bump to ${VERSION}" \
             --body "Automated version bump for rover-tui ${VERSION}.
 
-          - Updates source tarball URL to \`rover_tui-${VERSION}.tar.gz\`
-          - Updates formula \`sha256\` to the provided value
+          - Updates source tarball URL to \`${SDIST_URL}\`
+          - Updates formula \`sha256\` (verified against PyPI)
 
           Triggered by the \`rover-pypi-publish\` workflow in thepixelabs/dispatch." \
             --label "version-bump" \
