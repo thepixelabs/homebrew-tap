@@ -100,12 +100,12 @@ jobs:
           git add Formula/rover.rb
           git commit -m "chore(rover): bump to ${VERSION}"
 
+      - name: Push branch
+        run: git push origin "$BRANCH"
+
       - name: Run brew audit on updated formula
         uses: Homebrew/actions/setup-homebrew@main
       - run: brew audit --new rover || brew audit rover
-
-      - name: Push branch
-        run: git push origin "$BRANCH"
 
       - name: Create pull request
         env:
