@@ -130,17 +130,19 @@ class Rover < Formula
     virtualenv_install_with_resources
   end
 
-  caveats <<~EOS
-    rover requires tmux to manage terminal sessions. If you don't have it:
-      brew install tmux
+  def caveats
+    <<~EOS
+      rover requires tmux to manage terminal sessions. If you don't have it:
+        brew install tmux
 
-    For full setup (tmux config, SSH auto-launch, PATH shim), run the
-    official install script instead:
-      curl -fsSL https://raw.githubusercontent.com/thepixelabs/dispatch/main/rover/install.sh | bash
+      For full setup (tmux config, SSH auto-launch, PATH shim), run the
+      official install script instead:
+        curl -fsSL https://raw.githubusercontent.com/thepixelabs/dispatch/main/rover/install.sh | bash
 
-    To start rover:
-      rover
-  EOS
+      To start rover:
+        rover
+    EOS
+  end
 
   test do
     system bin/"rover", "--version"
