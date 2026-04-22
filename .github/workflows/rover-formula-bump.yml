@@ -11,6 +11,12 @@ on:
         description: "SHA-256 of the new rover_tui-<version>.tar.gz source tarball"
         required: true
         type: string
+  # Cross-repo trigger from thepixelabs/dispatch rover-pypi-publish.yml.
+  # Uses repository_dispatch instead of workflow_dispatch because the tap-scoped
+  # GitHub App has contents:write but not actions:write.
+  # client_payload schema: { version: string, sha256: string }
+  repository_dispatch:
+    types: [rover-bump]
 
 permissions:
   contents: write
@@ -20,7 +26,24 @@ jobs:
   bump:
     name: Update Formula and open PR
     runs-on: ubuntu-latest
+    # Normalise inputs across both triggers — workflow_dispatch puts them under
+    # `inputs.*`, repository_dispatch puts them under `github.event.client_payload.*`.
+    env:
+      VERSION: ${{ github.event.inputs.version || github.event.client_payload.version }}
+      SHA256:  ${{ github.event.inputs.sha256  || github.event.client_payload.sha256 }}
     steps:
+      - name: Validate inputs
+        run: |
+          set -euo pipefail
+          if [ -z "${VERSION:-}" ] || [ -z "${SHA256:-}" ]; then
+            echo "ERROR: missing version or sha256"
+            echo "  VERSION=$VERSION"
+            echo "  SHA256=$SHA256"
+            exit 1
+          fi
+          echo "version: $VERSION"
+          echo "sha256:  $SHA256"
+
       - name: Checkout tap
         uses: actions/checkout@v4
         with:
@@ -34,24 +57,24 @@ jobs:
 
       - name: Create bump branch
         run: |
-          BRANCH="bump/rover-v${{ inputs.version }}"
+          BRANCH="bump/rover-v${VERSION}"
           git checkout -b "$BRANCH"
           echo "BRANCH=$BRANCH" >> "$GITHUB_ENV"
 
       - name: Update tarball URL in formula
         run: |
-          sed -i 's|rover_tui-[0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*\.tar\.gz|rover_tui-${{ inputs.version }}.tar.gz|g' \
+          sed -i "s|rover_tui-[0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*\.tar\.gz|rover_tui-${VERSION}.tar.gz|g" \
             Formula/rover.rb
 
       - name: Update sha256 for rover-tui source tarball
         run: |
           python3 - <<'EOF'
-          import re, pathlib
+          import os, re, pathlib
 
           path = pathlib.Path("Formula/rover.rb")
           text = path.read_text()
 
-          new_sha = "${{ inputs.sha256 }}"
+          new_sha = os.environ["SHA256"]
           # Replace only the sha256 on the line immediately after the rover-tui source url.
           # Leaves all resource sha256s untouched (those are managed separately via poet).
           text = re.sub(
@@ -66,8 +89,8 @@ jobs:
         run: |
           if git diff --quiet Formula/rover.rb; then
             echo "ERROR: Formula/rover.rb was not modified — sed/regex matched nothing."
-            echo "  version input: ${{ inputs.version }}"
-            echo "  sha256 input:  ${{ inputs.sha256 }}"
+            echo "  version: $VERSION"
+            echo "  sha256:  $SHA256"
             echo "Check that the URL pattern in rover.rb matches what the sed command expects."
             exit 1
           fi
@@ -79,7 +102,7 @@ jobs:
       - name: Commit changes
         run: |
           git add Formula/rover.rb
-          git commit -m "chore(rover): bump to ${{ inputs.version }}"
+          git commit -m "chore(rover): bump to ${VERSION}"
 
       - name: Push branch
         run: git push origin "$BRANCH"
@@ -89,10 +112,10 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           gh pr create \
-            --title "chore(rover): bump to ${{ inputs.version }}" \
-            --body "Automated version bump for rover-tui ${{ inputs.version }}.
+            --title "chore(rover): bump to ${VERSION}" \
+            --body "Automated version bump for rover-tui ${VERSION}.
 
-          - Updates source tarball URL to \`rover_tui-${{ inputs.version }}.tar.gz\`
+          - Updates source tarball URL to \`rover_tui-${VERSION}.tar.gz\`
           - Updates formula \`sha256\` to the provided value
 
           Triggered by the \`rover-pypi-publish\` workflow in thepixelabs/dispatch." \
