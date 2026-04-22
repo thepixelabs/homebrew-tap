@@ -31,6 +31,7 @@ jobs:
     env:
       VERSION: ${{ github.event.inputs.version || github.event.client_payload.version }}
       SHA256:  ${{ github.event.inputs.sha256  || github.event.client_payload.sha256 }}
+      BRANCH:  bump/rover-v${{ github.event.inputs.version || github.event.client_payload.version }}
     steps:
       - name: Validate inputs
         run: |
@@ -56,10 +57,7 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
       - name: Create bump branch
-        run: |
-          BRANCH="bump/rover-v${VERSION}"
-          git checkout -b "$BRANCH"
-          echo "BRANCH=$BRANCH" >> "$GITHUB_ENV"
+        run: git checkout -b "$BRANCH"
 
       - name: Update tarball URL in formula
         run: |
