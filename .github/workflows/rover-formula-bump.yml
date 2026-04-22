@@ -95,17 +95,16 @@ jobs:
             exit 1
           fi
 
+      - name: Commit changes
+        run: |
+          # Commit before brew audit so that setup-homebrew cannot wipe the
+          # working-tree changes (it resets both git config and working tree).
+          git add Formula/rover.rb
+          git commit -m "chore(rover): bump to ${VERSION}"
+
       - name: Run brew audit on updated formula
         uses: Homebrew/actions/setup-homebrew@main
       - run: brew audit --new rover || brew audit rover
-
-      - name: Commit changes
-        run: |
-          # setup-homebrew resets git config; re-apply identity before commit.
-          git config user.name  "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add Formula/rover.rb
-          git commit -m "chore(rover): bump to ${VERSION}"
 
       - name: Push branch
         run: git push origin "$BRANCH"
