@@ -5,3 +5,6 @@
 .vscode/
 .tasks/
 
+
+# Local MCP server config — never version-controlled
+.mcp.json
