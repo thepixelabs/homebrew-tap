@@ -11,7 +11,7 @@ class Amnesiai < Formula
   on_macos do
     if Hardware::CPU.intel?
       url "https://github.com/thepixelabs/amnesiai/releases/download/v0.1.0/amnesiai_darwin_amd64.tar.gz"
-      sha256 "9fcc9b01ef02a34e51a1a5df5fb9cdefa1cdc119908252ac16db83f7f9070c0d"
+      sha256 "e3b5754f76820acd109294a03683b095b85046462382873cff5c4ed40ae696e5"
 
       def install
         bin.install "amnesiai"
@@ -19,7 +19,7 @@ class Amnesiai < Formula
     end
     if Hardware::CPU.arm?
       url "https://github.com/thepixelabs/amnesiai/releases/download/v0.1.0/amnesiai_darwin_arm64.tar.gz"
-      sha256 "f3418ed3386ca292126557a8f9a4603ba5c1395429e36256103cbd4b82188b7c"
+      sha256 "ae59a6476e769bea23e1554aebf98a4df3160f5289c43acec987e4313456418a"
 
       def install
         bin.install "amnesiai"
@@ -31,7 +31,7 @@ class Amnesiai < Formula
     if Hardware::CPU.intel?
       if Hardware::CPU.is_64_bit?
         url "https://github.com/thepixelabs/amnesiai/releases/download/v0.1.0/amnesiai_linux_amd64.tar.gz"
-        sha256 "919c0244066824e88bb4bcb8c9cc4eefa9eabd536f77c202ed1fe4589718742f"
+        sha256 "3d51dda348dfdcf13fdbeab8817e0d7d216e0dba5be2aeaa3b54c08a7d21a59b"
 
         def install
           bin.install "amnesiai"
@@ -41,7 +41,7 @@ class Amnesiai < Formula
     if Hardware::CPU.arm?
       if Hardware::CPU.is_64_bit?
         url "https://github.com/thepixelabs/amnesiai/releases/download/v0.1.0/amnesiai_linux_arm64.tar.gz"
-        sha256 "dd6e0ccf0625d55fbbc8d1e2e46334d3eab582a6a3589b6ab7ef08631488408a"
+        sha256 "209d141d8f74d9e12787dbab8a054d0e0d799f109d5aaf7e20b423112e919b4c"
 
         def install
           bin.install "amnesiai"
