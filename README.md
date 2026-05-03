@@ -19,7 +19,7 @@ brew tap thepixelabs/tap
 | amnesiai | Formula | 0.1.0 | git your ai setup — backup and restore AI coding assistant configurations | `brew install thepixelabs/tap/amnesiai` |
 | rover | Formula |  | Terminal UI for the Dispatch multi-agent platform (rover-tui) | `brew install thepixelabs/tap/rover` |
 | sanitai | Formula | 0.2.12 | Find secrets in your LLM chat history before someone else does | `brew install thepixelabs/tap/sanitai` |
-| uplnk | Formula | 0.1.0 | Terminal-native AI chat client — local-first, privacy-first | `brew install thepixelabs/tap/uplnk` |
+| uplnk | Formula | 0.2.0 | Terminal-native AI chat client — local-first, privacy-first | `brew install thepixelabs/tap/uplnk` |
 | vedox | Formula |  | Local-first, Git-native documentation operating system for solo developers | `brew install thepixelabs/tap/vedox` |
 
 <!-- END AUTO-GENERATED -->
