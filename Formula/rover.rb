@@ -3,8 +3,8 @@ class Rover < Formula
 
   desc "Terminal UI for the Dispatch multi-agent platform (rover-tui)"
   homepage "https://github.com/thepixelabs/dispatch"
-  url "https://files.pythonhosted.org/packages/a3/6a/545078e5bc487a4dc3a9062d004ec7039828733459e3d373f21f664b47bf/rover_tui-0.3.6.tar.gz"
-  sha256 "6fff19674acb6d4ff8b56392d48997d631800e6e3b8b0f62774cdf9814b48eac"
+  url "https://files.pythonhosted.org/packages/84/12/c4b669c4cfe1e26a93ecc84645a55b3017ba9da32e3289792564bb706d95/rover_tui-0.3.7.tar.gz"
+  sha256 "61c3c195093ffa6046be0d4663ac5756890e665497b6c9646be853245b52702d"
   license :cannot_represent
 
   livecheck do
