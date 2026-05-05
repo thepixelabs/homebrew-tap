@@ -6,10 +6,10 @@ class Sanitai < Formula
   on_macos do
     if Hardware::CPU.arm?
       url "https://github.com/thepixelabs/sanitai/releases/download/v0.3.1/sanitai-0.3.1-aarch64-apple-darwin.tar.gz"
-      sha256 "3d0b996c825c9c2c35d2d783612bc19ce89a3a38ef66f029f5de24be87b70e47"
+      sha256 "3a482a89c70f5cd50caa7bdddd5ce3355dbc09d31280de8570e0675e4e8d01fb"
     else
       url "https://github.com/thepixelabs/sanitai/releases/download/v0.3.1/sanitai-0.3.1-x86_64-apple-darwin.tar.gz"
-      sha256 "ce9d90845ee1cf76e673eee9951454bd7bbccc537b325aadcea359d44bcc4c5c"
+      sha256 "2e9cdfaee4f4949739acd557f9d0bceacad42bf063f35df439bd035f0d1c4fa9"
     end
   end
 
