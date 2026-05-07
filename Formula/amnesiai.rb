@@ -5,21 +5,21 @@
 class Amnesiai < Formula
   desc "git your ai setup — backup and restore AI coding assistant configurations"
   homepage "https://amnesiai.pixelabs.net"
-  version "0.2.0"
+  version "0.3.0"
   license "Apache-2.0"
 
   on_macos do
     if Hardware::CPU.intel?
-      url "https://github.com/thepixelabs/amnesiai/releases/download/v0.2.0/amnesiai_darwin_amd64.tar.gz"
-      sha256 "ef7fca94ca3c05e3d3272c93777ce1b2a061638f976e40b5059652856abf09d5"
+      url "https://github.com/thepixelabs/amnesiai/releases/download/v0.3.0/amnesiai_darwin_amd64.tar.gz"
+      sha256 "a2826a8d7444eb6b4206b0de031ab5cb3d84c19cf1725137f11df4e07875cd02"
 
       def install
         bin.install "amnesiai"
       end
     end
     if Hardware::CPU.arm?
-      url "https://github.com/thepixelabs/amnesiai/releases/download/v0.2.0/amnesiai_darwin_arm64.tar.gz"
-      sha256 "35bf8fb4027d5dcbc3e4101289c7f4ccc5bc9e54002a00e7a5880df403c5415d"
+      url "https://github.com/thepixelabs/amnesiai/releases/download/v0.3.0/amnesiai_darwin_arm64.tar.gz"
+      sha256 "49fc66a8c78f7e8ebfb7cfaf1c0037de750d094ba925f32b2f64ed38859d7fc8"
 
       def install
         bin.install "amnesiai"
@@ -30,8 +30,8 @@ class Amnesiai < Formula
   on_linux do
     if Hardware::CPU.intel?
       if Hardware::CPU.is_64_bit?
-        url "https://github.com/thepixelabs/amnesiai/releases/download/v0.2.0/amnesiai_linux_amd64.tar.gz"
-        sha256 "b064760ba4ba7b886056d614c390f3695fbff5802d8699c49f4711e3de9eebd0"
+        url "https://github.com/thepixelabs/amnesiai/releases/download/v0.3.0/amnesiai_linux_amd64.tar.gz"
+        sha256 "edbc7bb2f7497ed512b7659f2481b4f3b63011bc8a2c9029401cfa28f2b37722"
 
         def install
           bin.install "amnesiai"
@@ -40,8 +40,8 @@ class Amnesiai < Formula
     end
     if Hardware::CPU.arm?
       if Hardware::CPU.is_64_bit?
-        url "https://github.com/thepixelabs/amnesiai/releases/download/v0.2.0/amnesiai_linux_arm64.tar.gz"
-        sha256 "d94ea7cad43dc9756c9c95074d525b9bb597b79360d81e11a74bedb12ac47f9a"
+        url "https://github.com/thepixelabs/amnesiai/releases/download/v0.3.0/amnesiai_linux_arm64.tar.gz"
+        sha256 "c5293dc0b2a58e96f56fc9fc3521a2cb6acadf3c66ee47efffd807a2039afd46"
 
         def install
           bin.install "amnesiai"
