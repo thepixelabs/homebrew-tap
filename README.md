@@ -16,9 +16,9 @@ brew tap thepixelabs/tap
 |------|------|---------|-------------|---------|
 | dispatch | Cask | 1.60.0 | Local-first AI agent monitor for Claude, Codex, Gemini, and Copilot | `brew install --cask thepixelabs/tap/dispatch` |
 | kubecat | Cask | 0.2.1 | Incident-first Kubernetes desktop app with AI-powered operations | `brew install --cask thepixelabs/tap/kubecat` |
-| amnesiai | Formula | 0.2.0 | git your ai setup — backup and restore AI coding assistant configurations | `brew install thepixelabs/tap/amnesiai` |
+| amnesiai | Formula | 0.3.0 | git your ai setup — backup and restore AI coding assistant configurations | `brew install thepixelabs/tap/amnesiai` |
 | rover | Formula |  | Terminal UI for the Dispatch multi-agent platform (rover-tui) | `brew install thepixelabs/tap/rover` |
-| sanitai | Formula | 0.3.0 | Find secrets in your LLM chat history before someone else does | `brew install thepixelabs/tap/sanitai` |
+| sanitai | Formula | 0.3.2 | Find secrets in your LLM chat history before someone else does | `brew install thepixelabs/tap/sanitai` |
 | uplnk | Formula | 0.2.0 | Terminal-native AI chat client — local-first, privacy-first | `brew install thepixelabs/tap/uplnk` |
 
 <!-- END AUTO-GENERATED -->
