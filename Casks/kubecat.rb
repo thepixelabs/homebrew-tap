@@ -8,7 +8,7 @@ cask "kubecat" do
   homepage "https://kubecat.io"
 
   livecheck do
-    url "https://github.com/thepixelabs/kubecat/releases/download/v0.2.1/kubecat_v0.2.1_macOS_universal.dmg"
+    url :url
     strategy :github_latest
   end
 
