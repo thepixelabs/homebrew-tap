@@ -11,7 +11,7 @@ on:
         description: "SHA-256 of the new rover_tui-<version>.tar.gz source tarball (optional — fetched from PyPI if omitted)"
         required: false
         type: string
-  # Cross-repo trigger from thepixelabs/dispatch rover-pypi-publish.yml.
+  # Cross-repo trigger from thepixelabs/rover pypi-publish.yml.
   # Uses repository_dispatch instead of workflow_dispatch because the tap-scoped
   # GitHub App has contents:write but not actions:write.
   # client_payload schema: { version: string, sha256: string }
@@ -168,7 +168,7 @@ jobs:
           - Updates source tarball URL to \`${SDIST_URL}\`
           - Updates formula \`sha256\` (verified against PyPI)
 
-          Triggered by the \`rover-pypi-publish\` workflow in thepixelabs/dispatch." \
+          Triggered by the \`pypi-publish\` workflow in thepixelabs/rover." \
             --label "version-bump" \
             --base main \
             --head "$BRANCH"

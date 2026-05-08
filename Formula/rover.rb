@@ -2,9 +2,9 @@ class Rover < Formula
   include Language::Python::Virtualenv
 
   desc "Terminal UI for the Dispatch multi-agent platform (rover-tui)"
-  homepage "https://github.com/thepixelabs/dispatch"
-  url "https://files.pythonhosted.org/packages/84/12/c4b669c4cfe1e26a93ecc84645a55b3017ba9da32e3289792564bb706d95/rover_tui-0.3.7.tar.gz"
-  sha256 "61c3c195093ffa6046be0d4663ac5756890e665497b6c9646be853245b52702d"
+  homepage "https://github.com/thepixelabs/rover"
+  url "https://files.pythonhosted.org/packages/30/90/56f2e46eee6c05a3f618ef80a54d55b85af1612b74fe92f6cc57c2742e4d/rover_tui-0.3.8.tar.gz"
+  sha256 "63771e785789f047a5963b95a95e8cf93ab0a535467eca21e807ab2b01bd638c"
   license :cannot_represent
 
   livecheck do
@@ -134,10 +134,6 @@ class Rover < Formula
     <<~EOS
       rover requires tmux to manage terminal sessions. If you don't have it:
         brew install tmux
-
-      For full setup (tmux config, SSH auto-launch, PATH shim), run the
-      official install script instead:
-        curl -fsSL https://raw.githubusercontent.com/thepixelabs/dispatch/main/rover/install.sh | bash
 
       To start rover:
         rover
