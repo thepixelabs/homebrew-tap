@@ -14,7 +14,13 @@ class Rover < Formula
     end
   end
 
-  depends_on "python@3.12"
+  # Pin to python@3.11 to sidestep a libexpat ABI break in Homebrew's
+  # python@3.12 / python@3.13 bottles on macOS Tahoe 26.0–26.2 (Apple's
+  # bundled libexpat is missing _XML_SetAllocTrackerActivationThreshold,
+  # which Homebrew's pyexpat extension expects). python@3.11 links
+  # against the older system surface and works on every supported macOS.
+  # Reconsider once macOS 26.3 ships and Homebrew re-bottles 3.12/3.13.
+  depends_on "python@3.11"
 
   resource "anyio" do
     url "https://files.pythonhosted.org/packages/19/14/2c5dd9f512b66549ae92767a9c7b330ae88e1932ca57876909410251fe13/anyio-4.13.0.tar.gz"
@@ -102,8 +108,11 @@ class Rover < Formula
   end
 
   resource "rich-pyfiglet" do
-    url "https://files.pythonhosted.org/packages/63/45/e9fe32d846099de94bb89402a0bd87ae536d5317329cc4adb1373e027c8d/rich_pyfiglet-1.0.0.tar.gz"
-    sha256 "a9ba2ae109eb43112a2eb8f35abb3fc4113be0927d4718cdbbc47513957f38ed"
+    # Use the wheel, not the sdist: rich-pyfiglet's sdist build pulls
+    # maturin from PyPI (uv_build → maturin) and Homebrew's install
+    # sandbox blocks outbound network during build, breaking the install.
+    url "https://files.pythonhosted.org/packages/7e/33/594d2997ce77d4a18984a9bfc01907d456b8f60dbcc313c8ad1cb568526e/rich_pyfiglet-1.0.0-py3-none-any.whl"
+    sha256 "0b1653b0381cab356772c562e528c091171beeaa1821f71cfd65c379197b4244"
   end
 
   resource "sniffio" do
