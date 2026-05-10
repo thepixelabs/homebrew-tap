@@ -1,0 +1,46 @@
+name: rover install canary
+
+# Runs `brew install thepixelabs/tap/rover` on a fresh macOS runner every day
+# so that future regressions (Homebrew bottle changes, uv CLI churn, transitive
+# PyPI yank, Astral env-var rename, macOS keg layout change, etc.) light up
+# GitHub within ~24h instead of via user-reported issues.
+#
+# Public repo → free unlimited minutes on macos-latest. Zero billing impact.
+
+on:
+  schedule:
+    # 13:00 UTC daily = 06:00 PT / 09:00 ET / 16:00 IL (off-peak everywhere)
+    - cron: '0 13 * * *'
+  workflow_dispatch: {}
+  # Also trigger on changes to the rover formula itself so we validate before
+  # the next push lands in production.
+  push:
+    branches: [main]
+    paths:
+      - 'Formula/rover.rb'
+
+permissions:
+  contents: read
+
+jobs:
+  brew-install:
+    name: brew install thepixelabs/tap/rover
+    runs-on: macos-latest
+    timeout-minutes: 15
+    steps:
+      - name: brew tap thepixelabs/tap
+        run: brew tap thepixelabs/tap
+
+      - name: brew install thepixelabs/tap/rover
+        run: brew install thepixelabs/tap/rover
+
+      - name: rover --version
+        run: |
+          set -euo pipefail
+          OUT=$(rover --version)
+          echo "got: $OUT"
+          # Sanity: must look like "rover X.Y.Z"
+          echo "$OUT" | grep -qE '^rover [0-9]+\.[0-9]+\.[0-9]+'
+
+      - name: brew test rover
+        run: brew test thepixelabs/tap/rover
