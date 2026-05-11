@@ -14,7 +14,7 @@ brew tap thepixelabs/tap
 
 | Name | Type | Version | Description | Install |
 |------|------|---------|-------------|---------|
-| dispatch | Cask | 1.60.0 | Local-first AI agent monitor for Claude, Codex, Gemini, and Copilot | `brew install --cask thepixelabs/tap/dispatch` |
+| dispatch | Cask | 1.61.0 | Local-first AI agent monitor for Claude, Codex, Gemini, and Copilot | `brew install --cask thepixelabs/tap/dispatch` |
 | kubecat | Cask | 0.2.2 | Incident-first Kubernetes desktop app with AI-powered operations | `brew install --cask thepixelabs/tap/kubecat` |
 | amnesiai | Formula | 0.3.0 | git your ai setup — backup and restore AI coding assistant configurations | `brew install thepixelabs/tap/amnesiai` |
 | rover | Formula |  | Terminal UI for the Dispatch multi-agent platform (rover-tui) | `brew install thepixelabs/tap/rover` |
