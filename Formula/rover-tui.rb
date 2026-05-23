@@ -1,9 +1,9 @@
-class Rover < Formula
-  desc "Terminal UI for the Dispatch multi-agent platform (rover-tui)"
+class RoverTui < Formula
+  desc "SSH-friendly TUI session manager and AI agent launcher for your Mac"
   homepage "https://github.com/thepixelabs/rover"
   url "https://files.pythonhosted.org/packages/59/3b/fd9cbf15563282b0a1dac9eda048f899d3d484a461731e4fcc4aae63023b/rover_tui-0.4.0.tar.gz"
   sha256 "0e290f3efa8ae073539f887030eb6e4b812b822367b4d06b2eb485939b133ee0"
-  license :cannot_represent
+  license "Apache-2.0"
 
   livecheck do
     url "https://pypi.org/pypi/rover-tui/json"

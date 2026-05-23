@@ -107,7 +107,7 @@ jobs:
           python3 - <<'EOF'
           import os, re, pathlib
 
-          path = pathlib.Path("Formula/rover.rb")
+          path = pathlib.Path("Formula/rover-tui.rb")
           text = path.read_text()
 
           new_url    = os.environ["NEW_URL"]
@@ -135,10 +135,10 @@ jobs:
 
       - name: Verify formula was actually modified
         run: |
-          if git diff --quiet Formula/rover.rb; then
-            echo "ERROR: Formula/rover.rb was not modified — regex matched nothing."
-            echo "Check that the URL pattern in rover.rb matches what the python script expects."
-            git diff HEAD Formula/rover.rb || true
+          if git diff --quiet Formula/rover-tui.rb; then
+            echo "ERROR: Formula/rover-tui.rb was not modified — regex matched nothing."
+            echo "Check that the URL pattern in rover-tui.rb matches what the python script expects."
+            git diff HEAD Formula/rover-tui.rb || true
             exit 1
           fi
 
@@ -146,15 +146,15 @@ jobs:
         run: |
           # Commit before brew audit so that setup-homebrew cannot wipe the
           # working-tree changes (it resets both git config and working tree).
-          git add Formula/rover.rb
-          git commit -m "chore(rover): bump to ${VERSION}"
+          git add Formula/rover-tui.rb
+          git commit -m "chore(rover-tui): bump to ${VERSION}"
 
       - name: Push branch
         run: git push origin "$BRANCH"
 
       - name: Run brew audit on updated formula
         uses: Homebrew/actions/setup-homebrew@main
-      - run: brew audit --new rover || brew audit rover
+      - run: brew audit --new rover-tui || brew audit rover-tui
 
       - name: Create pull request
         env:
@@ -162,7 +162,7 @@ jobs:
           SDIST_URL: ${{ steps.pypi.outputs.url }}
         run: |
           gh pr create \
-            --title "chore(rover): bump to ${VERSION}" \
+            --title "chore(rover-tui): bump to ${VERSION}" \
             --body "Automated version bump for rover-tui ${VERSION}.
 
           - Updates source tarball URL to \`${SDIST_URL}\`

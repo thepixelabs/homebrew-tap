@@ -1,6 +1,6 @@
 name: rover install canary
 
-# Runs `brew install thepixelabs/tap/rover` on a fresh macOS runner every day
+# Runs `brew install thepixelabs/tap/rover-tui` on a fresh macOS runner every day
 # so that future regressions (Homebrew bottle changes, uv CLI churn, transitive
 # PyPI yank, Astral env-var rename, macOS keg layout change, etc.) light up
 # GitHub within ~24h instead of via user-reported issues.
@@ -17,22 +17,22 @@ on:
   push:
     branches: [main]
     paths:
-      - 'Formula/rover.rb'
+      - 'Formula/rover-tui.rb'
 
 permissions:
   contents: read
 
 jobs:
   brew-install:
-    name: brew install thepixelabs/tap/rover
+    name: brew install thepixelabs/tap/rover-tui
     runs-on: macos-latest
     timeout-minutes: 15
     steps:
       - name: brew tap thepixelabs/tap
         run: brew tap thepixelabs/tap
 
-      - name: brew install thepixelabs/tap/rover
-        run: brew install thepixelabs/tap/rover
+      - name: brew install thepixelabs/tap/rover-tui
+        run: brew install thepixelabs/tap/rover-tui
 
       - name: rover --version
         run: |
@@ -43,4 +43,4 @@ jobs:
           echo "$OUT" | grep -qE '^rover [0-9]+\.[0-9]+\.[0-9]+'
 
       - name: brew test rover
-        run: brew test thepixelabs/tap/rover
+        run: brew test thepixelabs/tap/rover-tui
