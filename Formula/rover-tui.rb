@@ -44,16 +44,10 @@ class RoverTui < Formula
       To start rover:
         rover
 
-      Optional — auto-launch rover when you SSH into this host (e.g. from
-      Termius on a phone). Add to ~/.zshrc:
+      Auto-launch on SSH login — run this once, then reload your shell:
 
-        # Auto-launch rover on SSH sessions
-        if [[ -n "$SSH_CONNECTION" ]] \\
-           && [[ -z "$TMUX" ]] \\
-           && [[ $- == *i* ]] \\
-           && command -v rover >/dev/null 2>&1; then
-          exec rover
-        fi
+        echo 'if [[ -n "$SSH_CONNECTION" ]] && [[ -z "$TMUX" ]] && command -v rover >/dev/null 2>&1; then exec rover; fi' >> ~/.zshrc
+        source ~/.zshrc
     EOS
   end
 
