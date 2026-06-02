@@ -44,10 +44,20 @@ class RoverTui < Formula
       To start rover:
         rover
 
-      Auto-launch on SSH login — run this once, then reload your shell:
+      Auto-launch on SSH login — add this block to ~/.zshrc, then `source ~/.zshrc`:
 
-        echo 'if [[ -n "$SSH_CONNECTION" ]] && [[ -z "$TMUX" ]] && command -v rover >/dev/null 2>&1; then exec rover; fi' >> ~/.zshrc
-        source ~/.zshrc
+        # Auto-launch rover on SSH login, but drop back to the shell on quit
+        # (no `exec` — otherwise quitting rover terminates the SSH session).
+        if [[ -n "$SSH_CONNECTION" ]] \\
+           && [[ -z "$TMUX" ]] \\
+           && [[ -z "$ROVER_LAUNCHED" ]] \\
+           && command -v rover >/dev/null 2>&1; then
+          export ROVER_LAUNCHED=1
+          rover
+        fi
+
+      For VPN setup (Tailscale, WireGuard, port forwarding) see:
+        https://github.com/thepixelabs/rover/blob/main/docs/ssh-setup.md
     EOS
   end
 
