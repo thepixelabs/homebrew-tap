@@ -44,7 +44,7 @@ class RoverTui < Formula
       To start rover:
         rover
 
-      Auto-launch on SSH login — add this block to ~/.zshrc, then `source ~/.zshrc`:
+      Auto-launch on SSH login — add this block to your shell profile (~/.zshrc, ~/.bashrc, etc.), then reload it:
 
         # Auto-launch rover on SSH login, but drop back to the shell on quit
         # (no `exec` — otherwise quitting rover terminates the SSH session).
