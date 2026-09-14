@@ -5,21 +5,21 @@ class Sanitai < Formula
 
   on_macos do
     if Hardware::CPU.arm?
-      url "https://github.com/thepixelabs/sanitai/releases/download/v0.4.0/sanitai-0.4.0-aarch64-apple-darwin.tar.gz"
-      sha256 "a7a651582fea7830d5701f40fc62f44ff1112931695acded0e43893f9237f25d"
+      url "https://github.com/thepixelabs/sanitai/releases/download/v0.4.1/sanitai-0.4.1-aarch64-apple-darwin.tar.gz"
+      sha256 "b3035284fabde9f334824ee458044f544f5026b28f260870637c0b9e0298e20f"
     else
-      url "https://github.com/thepixelabs/sanitai/releases/download/v0.4.0/sanitai-0.4.0-x86_64-apple-darwin.tar.gz"
-      sha256 "9e1d2d97070dc54d39baf6d2e607e8a4e0761e94ba78558a03c14cec996b0ed7"
+      url "https://github.com/thepixelabs/sanitai/releases/download/v0.4.1/sanitai-0.4.1-x86_64-apple-darwin.tar.gz"
+      sha256 "f2e1631adcd4076f7e570f782802768c3e4d751a9e23d5f5b8c31404fadb3ac6"
     end
   end
 
   on_linux do
     if Hardware::CPU.arm?
-      url "https://github.com/thepixelabs/sanitai/releases/download/v0.4.0/sanitai-0.4.0-aarch64-unknown-linux-gnu.tar.gz"
-      sha256 "5693de78ed7bbaa1cf5bc6fe9fc83e9f7a2a840fee2c165aa5825d94b7403d9f"
+      url "https://github.com/thepixelabs/sanitai/releases/download/v0.4.1/sanitai-0.4.1-aarch64-unknown-linux-gnu.tar.gz"
+      sha256 "6ee7b50a4150de447d51730ffd2c10efc9d885b3982d5e9d802291ef94503b93"
     else
-      url "https://github.com/thepixelabs/sanitai/releases/download/v0.4.0/sanitai-0.4.0-x86_64-unknown-linux-gnu.tar.gz"
-      sha256 "ce93c71d09ae4c63d330e92a60fdd4ad510b29d05c19255e79cb898a407289e6"
+      url "https://github.com/thepixelabs/sanitai/releases/download/v0.4.1/sanitai-0.4.1-x86_64-unknown-linux-gnu.tar.gz"
+      sha256 "28645acda1a08c37c04ef50210fe90420b504062f67cb3e13f0d6aa70aabe573"
     end
   end
 
